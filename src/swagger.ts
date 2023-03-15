@@ -1,6 +1,7 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { AuthModule } from './modules/auth/auth.module';
+import { GamesModule } from './modules/games/games.module';
 
 export const swagger = async (app: INestApplication) => {
   const options = new DocumentBuilder()
@@ -15,7 +16,7 @@ export const swagger = async (app: INestApplication) => {
 
   const document = SwaggerModule.createDocument(app, options, {
     deepScanRoutes: true,
-    include: [AuthModule],
+    include: [AuthModule, GamesModule],
   });
   SwaggerModule.setup('api', app, document, {
     customSiteTitle: 'Operator API',

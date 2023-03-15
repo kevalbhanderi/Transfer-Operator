@@ -26,7 +26,7 @@ export class UserMapper {
    */
   buildUserWallet = (): UserWallet => {
     return {
-      balance: 0,
+      balance: 10000,
       currency: 'INR',
     };
   };
