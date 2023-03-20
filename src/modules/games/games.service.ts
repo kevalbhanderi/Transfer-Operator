@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { getObject, upsertObject } from '../database/database.provider';
 import { UserObject } from '../auth/register/interface/user.interface';
 import { generatePlayerToken } from '../../utils/player.token.helper';
+import { hmacSHA256 } from '../../utils/crypto.helper';
 
 @Injectable()
 export class GamesService {
@@ -73,6 +74,7 @@ export class GamesService {
    * @returns
    */
   async NagaGamebalance(caller: JwtTokenInterface): Promise<{}> {
+    // Get User Details
     const userData = (await getObject(
       `${caller.user_id}${DbDocKeys.USER}`,
     )) as UserObject;
@@ -82,17 +84,28 @@ export class GamesService {
       );
     }
 
+    const data = {
+      nativeId: caller.user_id,
+      brandCode: process.env.TRANSFER_BRAND_CODE,
+      groupCode: process.env.GROUP_CODE,
+    };
+    // Generate Signature
+    const signature = hmacSHA256(JSON.stringify(data), process.env.SECRET_KEY);
+
     try {
       const wallet = await axios.get(process.env.NAGAGAMES_PLAYER_BALANCE, {
         params: {
           nativeId: caller.user_id,
+          brandCode: process.env.TRANSFER_BRAND_CODE,
           groupCode: process.env.GROUP_CODE,
-          brandCode: process.env.BRAND_CODE,
+        },
+        headers: {
+          'X-Signature': signature,
         },
       });
       return wallet.data;
     } catch (e) {
-      console.log(e, 'Error in Naga Games Player Balance');
+      throw new BadRequestException(e?.response?.data || e);
     }
   }
 }
